@@ -1,0 +1,17 @@
+Public Sub Numeric26() '---> макрос преобразования похожего на числа текст в настоящие число
+    Dim DataRng As Range, cell As Range
+    ThisWorkbook.Worksheets(PageIn).Range("AA21:AA100000").Select  '---> выбираю столбец с числами
+    If Selection.Cells.Count > 1 Then '---> если в столбце больше 1-ой ячейки
+        Set DataRng = Selection.SpecialCells(xlCellTypeConstants) '---> беру значения
+    Else
+        Set DataRng = Selection
+    End If
+        On Error Resume Next
+        For Each cell In DataRng  '---> для каждой ячейки в выделении
+            With cell
+                If IsNumeric(.Value) Then .Value = CDbl(.Value)  '---> если похоже на число, то делаю числом
+            End With
+        Next cell
+        On Error GoTo 0
+Calculate
+End Sub 'Numeric26
