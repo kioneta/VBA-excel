@@ -1,0 +1,130 @@
+Public Sub Take()   '---> макрос извлечения данных из карточки счета
+  Dim ArIn(), arOut() '---> задаю два массива, входящий, исходящий
+  Dim S1@, S0@
+  'Dim i, j, FinRow As Integer
+  Dim i, j As Integer
+  Dim FinRow As Long
+  Dim x As Variant
+  Dim SCHET As Currency
+  Dim cell As Range
+  Call Start
+  Call Insert26
+  ThisWorkbook.Worksheets(PageIn).Range("A21:N100000").Select  '---> избавляюсь от переносов по строкам и пр.
+  With Selection
+        .WrapText = False
+        .Orientation = 0
+        .AddIndent = False
+        .IndentLevel = 0
+        .ShrinkToFit = False
+        .ReadingOrder = xlContext
+  End With
+  '---> если документ не выбран, то ругаюсь и закрываю процедуру
+    If IsEmpty(ThisWorkbook.Worksheets(PageIn).Range("A21")) Then: MsgBox "Документ не выбран!": Exit Sub
+
+    With ThisWorkbook.Worksheets(PageIn)  '---> если документ выбран, то работаю с листом пагеин переменная задана сверху
+        ThisWorkbook.Worksheets(PageIn).Range("P21:AC100000").ClearContents  '---> очищаю старое извлечение, чтобы избежать ошибок наложения
+           ArIn = ThisWorkbook.Worksheets(PageIn).Range(.[A21], .Cells(.Rows.Count, "a").End(xlUp).Offset(, 10)).Value  '---> загружаю всю карточку счета в массив (нужные столбцы - первые 7)
+          'ТУТ ЗАДАТЬ РАЗМЕР ВЫХОДА!!!
+          ReDim arOut(1 To UBound(ArIn), 1 To 13)  '---> !!!задаю число строк во всех ячейках одной строки тех столбцов, которые взял в массив
+          For i = 1 To UBound(ArIn)  '---> указываю число переборов в цикле - узнаю, сколько попало в массив строк
+            x = Split(ArIn(i, 1), vbLf)  '---> делю каждую ячейку по строкам, если там есть перенос на новую строку
+            For j = 0 To UBound(x): arOut(i, 1 + j) = x(j): Next '
+            x = Split(ArIn(i, 2), vbLf) '
+            For j = 0 To UBound(x): arOut(i, 2 + j) = x(j): Next '
+           If ThisWorkbook.Worksheets(PageIn).Cells(21, 9).Value = "91.04" Then 'если в дебете пусто
+            x = Split(ArIn(i, 5), vbLf) ' то разносим кредит
+            For j = 0 To UBound(x): arOut(i, 4 + j) = x(j): Next '
+            x = Split(ArIn(i, 4), vbLf) ' то разносим аналитику кредит
+            For j = 0 To UBound(x): arOut(i, 7 + j) = x(j): Next
+            
+            
+            Else
+            
+            x = Split(ArIn(i, 4), vbLf) ' в другом случае разносим дебет
+            For j = 0 To UBound(x): arOut(i, 4 + j) = x(j): Next '
+            x = Split(ArIn(i, 5), vbLf) ' то разносим аналитику дебет
+            For j = 0 To UBound(x): arOut(i, 7 + j) = x(j): Next
+            End If
+                
+                
+                
+                
+                If ThisWorkbook.Worksheets(PageIn).Cells(21, 9).Value = "91.04" Then 'если в дебете пусто
+                'If IsEmpty(ThisWorkbook.Worksheets(PageIn).Cells(21, 7)) Then
+                
+                x = Split(ArIn(i, 10), vbLf) 'то разносим кредит
+                For j = 0 To UBound(x): arOut(i, 12 + j) = ArIn(i, 10): Next
+                
+                x = Split(ArIn(i, 9), vbLf)
+                For j = 0 To UBound(x): arOut(i, 11 + j) = x(j): Next
+                
+            Else 'в другом случае разносим дебет
+            x = Split(ArIn(i, 7), vbLf)
+            For j = 0 To UBound(x): arOut(i, 12 + j) = x(j): Next
+            x = Split(ArIn(i, 9), vbLf)
+            For j = 0 To UBound(x): arOut(i, 13 + j) = x(j): Next
+            End If
+          Next
+          ThisWorkbook.Worksheets(PageIn).[P21].Resize(UBound(arOut), UBound(arOut, 2)).Value = arOut
+        End With
+    FinRow = ThisWorkbook.Worksheets(PageIn).Cells(Rows.Count, 16).End(xlUp).Row
+    For i = 21 To FinRow
+        If ThisWorkbook.Worksheets(PageIn).Cells(i, 21).Value = "" Then
+           ThisWorkbook.Worksheets(PageIn).Cells(i, 21).Value = ThisWorkbook.Worksheets(PageIn).Cells(i, 20).Value
+           Else
+        End If
+    Next i
+        
+        
+        
+    Call Numeric26
+'    SCHET = InputBox("Пожалуйста, введите сумму по счету 26.", "Проверка данных")
+'    If SCHET > 0 Then
+'        S1 = ThisWorkbook.Worksheets(PageIn).Cells(4, 45).Value
+'        If (SCHET - S1) <> 0 Then
+'            S0 = SCHET - S1
+'            MsgBox "Внимание, найдена ошибка. Отклонение составляет: " & vbCrLf & S0 & " руб.", 48, "Результат проверки"
+'        Else
+'        MsgBox "Данные извлечены верно. Сумма совпала.", 64, "Результат проверки"
+'        End If
+'    End If
+       
+    If ThisWorkbook.Worksheets(PageIn).Range("M8").Value = "Да" Then
+        FinRow = ThisWorkbook.Worksheets(PageIn).Cells(Rows.Count, 16).End(xlUp).Row
+        
+        For i = 21 To FinRow
+            If ThisWorkbook.Worksheets(PageIn).Cells(i, 22) = "" Then
+                ThisWorkbook.Worksheets(PageIn).Cells(i, 22).Value = "Пусто"
+            End If
+        Next i
+        For i = 21 To FinRow
+            If ThisWorkbook.Worksheets(PageIn).Cells(i, 23) = "" Then
+                ThisWorkbook.Worksheets(PageIn).Cells(i, 23).Value = "Пусто"
+            End If
+        Next i
+        For i = 21 To FinRow
+            If ThisWorkbook.Worksheets(PageIn).Cells(i, 24) = "" Then
+                ThisWorkbook.Worksheets(PageIn).Cells(i, 24).Value = "Пусто"
+            End If
+        Next i
+        For i = 21 To FinRow
+            If ThisWorkbook.Worksheets(PageIn).Cells(i, 27) = "" Then
+                ThisWorkbook.Worksheets(PageIn).Cells(i, 27).Value = "Пусто"
+            End If
+        Next i
+    End If
+    
+    ThisWorkbook.Worksheets(PageIn).Range("P21:Y100000").Select
+        For Each cell In Selection
+            If (Not IsEmpty(cell)) And (Not IsError(cell)) Then cell.Value = WorksheetFunction.Trim(cell.Value)
+        Next
+
+Call NewStat26 '---> вызываю макрос для проверки новых статей
+Call NewObj26 '---> вызываю макрос для проверки новых  мест затрат
+
+
+
+
+Call Finish
+ThisWorkbook.Worksheets(PageIn).Range("A1").Activate
+End Sub 'Take
